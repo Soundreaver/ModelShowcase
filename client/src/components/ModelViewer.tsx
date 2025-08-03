@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ThreeCanvas } from "./ThreeCanvas";
 import { ObjectUploader } from "./ObjectUploader";
@@ -16,6 +16,13 @@ export function ModelViewer() {
   const { data: models = [] } = useQuery<Model[]>({
     queryKey: ["/api/models"],
   });
+
+  // Auto-select the first model when models are loaded
+  useEffect(() => {
+    if (models.length > 0 && !currentModel) {
+      setCurrentModel(models[0]);
+    }
+  }, [models, currentModel]);
 
   const createModelMutation = useMutation({
     mutationFn: async (modelData: { name: string; filePath: string; fileSize: number; vertices?: number; triangles?: number }) => {

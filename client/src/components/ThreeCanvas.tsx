@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 interface ThreeCanvasProps {
   modelUrl?: string;
@@ -107,6 +107,8 @@ export function ThreeCanvas({ modelUrl, onModelLoad, onError }: ThreeCanvasProps
 
   useEffect(() => {
     if (!modelUrl || !sceneRef.current) return;
+    
+    console.log("Loading model from URL:", modelUrl);
 
     // Remove previous model
     if (currentModelRef.current) {
@@ -153,7 +155,7 @@ export function ThreeCanvas({ modelUrl, onModelLoad, onError }: ThreeCanvasProps
       (progress: ProgressEvent) => {
         console.log("Loading progress:", (progress.loaded / progress.total) * 100 + "%");
       },
-      (error: ErrorEvent) => {
+      (error: unknown) => {
         console.error("Error loading FBX:", error);
         onError?.("Failed to load 3D model");
       }
