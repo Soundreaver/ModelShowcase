@@ -116,12 +116,12 @@ export function ThreeCanvas({ modelUrl, onModelLoad, onError }: ThreeCanvasProps
     const loader = new FBXLoader();
     loader.load(
       modelUrl,
-      (object) => {
+      (object: THREE.Group) => {
         // Calculate model info
         let vertices = 0;
         let triangles = 0;
 
-        object.traverse((child) => {
+        object.traverse((child: THREE.Object3D) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true;
             child.receiveShadow = true;
@@ -150,10 +150,10 @@ export function ThreeCanvas({ modelUrl, onModelLoad, onError }: ThreeCanvasProps
 
         onModelLoad?.({ vertices: Math.round(vertices), triangles: Math.round(triangles) });
       },
-      (progress) => {
+      (progress: ProgressEvent) => {
         console.log("Loading progress:", (progress.loaded / progress.total) * 100 + "%");
       },
-      (error) => {
+      (error: ErrorEvent) => {
         console.error("Error loading FBX:", error);
         onError?.("Failed to load 3D model");
       }
@@ -172,10 +172,10 @@ export function ThreeCanvas({ modelUrl, onModelLoad, onError }: ThreeCanvasProps
     if (!currentModelRef.current) return;
 
     setIsWireframe(!isWireframe);
-    currentModelRef.current.traverse((child) => {
+    currentModelRef.current.traverse((child: THREE.Object3D) => {
       if (child instanceof THREE.Mesh) {
-        if (child.material instanceof THREE.Material) {
-          child.material.wireframe = !isWireframe;
+        if (child.material && typeof (child.material as any).wireframe !== 'undefined') {
+          (child.material as any).wireframe = !isWireframe;
         }
       }
     });

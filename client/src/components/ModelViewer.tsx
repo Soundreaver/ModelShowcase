@@ -51,7 +51,7 @@ export function ModelViewer() {
   };
 
   const handleUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    const uploadedFile = result.successful[0];
+    const uploadedFile = result.successful?.[0];
     if (uploadedFile) {
       const fileName = uploadedFile.name || "Unknown Model";
       const fileSize = uploadedFile.size || 0;

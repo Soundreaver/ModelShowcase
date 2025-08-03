@@ -41,6 +41,8 @@ export class MemStorage implements IStorage {
       ...insertModel,
       id,
       uploadedAt: new Date(),
+      vertices: insertModel.vertices ?? null,
+      triangles: insertModel.triangles ?? null,
     };
     this.models.set(id, model);
     return model;
@@ -67,6 +69,7 @@ export class MemStorage implements IStorage {
       ...insertImage,
       id,
       uploadedAt: new Date(),
+      category: insertImage.category ?? null,
     };
     this.images.set(id, image);
     return image;
