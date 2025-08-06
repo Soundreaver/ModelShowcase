@@ -8,8 +8,8 @@ export class LocalStorageService {
   private uploadsDir: string;
 
   constructor() {
-    // Save files to the client's public directory to make them directly accessible.
-    this.uploadsDir = path.join(process.cwd(), 'client/public/uploads');
+    // Save files to the server's uploads directory
+    this.uploadsDir = path.join(process.cwd(), 'uploads');
     this.ensureUploadsDir();
   }
 
@@ -21,10 +21,11 @@ export class LocalStorageService {
 
   async getUploadURL(): Promise<string> {
     const objectId = randomUUID();
-    // Return full URL for Uppy compatibility
+    // Return full URL for Uppy compatibility - use the same port as the main server
+    const port = process.env.PORT || 3001;
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? process.env.API_BASE_URL || 'http://localhost:5000'
-      : 'http://localhost:5000';
+      ? process.env.API_BASE_URL || `http://localhost:${port}`
+      : `http://localhost:${port}`;
     return `${baseUrl}/api/upload/${objectId}`;
   }
 

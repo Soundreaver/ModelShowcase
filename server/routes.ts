@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
+import path from "path";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { LocalStorageService } from "./localStorage";
@@ -11,6 +13,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const useCloudStorage = process.env.GOOGLE_CLOUD_PROJECT_ID && process.env.PRIVATE_OBJECT_DIR;
   const objectStorageService = useCloudStorage ? new ObjectStorageService() : null;
   const localStorageService = new LocalStorageService();
+
+  // Serve static files from uploads directory
+  const uploadsDir = path.join(process.cwd(), 'uploads');
+  app.use('/uploads', express.static(uploadsDir));
 
   // Serve public objects (images, models) - only if cloud storage is configured
   app.get("/public-objects/:filePath(*)", async (req, res) => {

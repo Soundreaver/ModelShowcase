@@ -3,12 +3,16 @@ import cors from 'cors';
 import multer from 'multer';
 import AWS from 'aws-sdk';
 import 'dotenv/config';
+import { registerRoutes } from './routes';
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
+// Basic middleware
 app.use(cors());
+app.use(express.json());
 
+// Cloudflare R2 setup for direct uploads (keeping your existing functionality)
 const s3 = new AWS.S3({
   endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
   accessKeyId: process.env.R2_ACCESS_KEY_ID,
@@ -20,6 +24,7 @@ const s3 = new AWS.S3({
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+// Direct R2 upload endpoint (legacy support)
 app.post('/upload', upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
@@ -44,6 +49,12 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+// Register the advanced routes
+registerRoutes(app).then((httpServer) => {
+  httpServer.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+  });
+}).catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });

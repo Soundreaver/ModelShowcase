@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// import { ObjectUploader } from "./ObjectUploader";
+import { ObjectUploader } from "./ObjectUploader";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,11 @@ export function ImageGallery() {
   });
 
   const createImageMutation = useMutation({
-    mutationFn: async (imageData: { name: string; filePath: string; category?: string }) => {
+    mutationFn: async (imageData: {
+      name: string;
+      filePath: string;
+      category?: string;
+    }) => {
       const response = await fetch("/api/images", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,12 +59,14 @@ export function ImageGallery() {
     const response = await fetch("/api/objects/upload", { method: "POST" });
     if (!response.ok) throw new Error("Failed to get upload URL");
     const { uploadURL } = await response.json();
-    
+
     // The Vite proxy will handle rewriting the URL, so we can use it directly.
     return { method: "PUT" as const, url: uploadURL };
   };
 
-  const handleUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+  const handleUploadComplete = (
+    result: UploadResult<Record<string, unknown>, Record<string, unknown>>
+  ) => {
     const uploadedFile = result.successful?.[0];
     if (uploadedFile) {
       setPendingUpload(uploadedFile);
@@ -70,9 +76,10 @@ export function ImageGallery() {
 
   const handleSaveImage = () => {
     if (!pendingUpload || !uploadName.trim()) return;
-    
+
     // The server response now contains the correct relative path
-    const filePath = (pendingUpload.response?.body as { filePath: string })?.filePath;
+    const filePath = (pendingUpload.response?.body as { filePath: string })
+      ?.filePath;
 
     if (filePath) {
       createImageMutation.mutate({
@@ -100,8 +107,12 @@ export function ImageGallery() {
         {/* Gallery Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-primary dark:text-white mb-2">Render Gallery</h2>
-            <p className="text-subtle dark:text-white/70">High-quality renders and portfolio images</p>
+            <h2 className="text-3xl font-bold text-primary dark:text-white mb-2">
+              Render Gallery
+            </h2>
+            <p className="text-subtle dark:text-white/70">
+              High-quality renders and portfolio images
+            </p>
           </div>
           <ObjectUploader
             maxNumberOfFiles={5}
@@ -121,8 +132,12 @@ export function ImageGallery() {
             <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
               <i className="fas fa-images text-2xl text-subtle dark:text-white/50"></i>
             </div>
-            <h3 className="text-xl font-semibold text-primary dark:text-white mb-2">No Images Yet</h3>
-            <p className="text-subtle dark:text-white/70 mb-6">Upload your first render to get started</p>
+            <h3 className="text-xl font-semibold text-primary dark:text-white mb-2">
+              No Images Yet
+            </h3>
+            <p className="text-subtle dark:text-white/70 mb-6">
+              Upload your first render to get started
+            </p>
             <ObjectUploader
               maxNumberOfFiles={5}
               maxFileSize={10 * 1024 * 1024}
@@ -153,9 +168,13 @@ export function ImageGallery() {
                   />
                 </div>
                 <div className="mt-3">
-                  <h4 className="font-medium text-primary dark:text-white truncate">{image.name}</h4>
+                  <h4 className="font-medium text-primary dark:text-white truncate">
+                    {image.name}
+                  </h4>
                   {image.category && (
-                    <p className="text-sm text-subtle dark:text-white/70 truncate">{image.category}</p>
+                    <p className="text-sm text-subtle dark:text-white/70 truncate">
+                      {image.category}
+                    </p>
                   )}
                 </div>
               </div>
@@ -180,7 +199,10 @@ export function ImageGallery() {
 
       {/* Image Details Modal */}
       {pendingUpload && (
-        <Dialog open={!!pendingUpload} onOpenChange={() => setPendingUpload(null)}>
+        <Dialog
+          open={!!pendingUpload}
+          onOpenChange={() => setPendingUpload(null)}
+        >
           <DialogContent>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Image Details</h3>
@@ -206,7 +228,9 @@ export function ImageGallery() {
                 <div className="flex gap-2">
                   <Button
                     onClick={handleSaveImage}
-                    disabled={!uploadName.trim() || createImageMutation.isPending}
+                    disabled={
+                      !uploadName.trim() || createImageMutation.isPending
+                    }
                     className="flex-1"
                   >
                     {createImageMutation.isPending ? "Saving..." : "Save"}
