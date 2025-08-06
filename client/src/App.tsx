@@ -1,32 +1,39 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import Portfolio from "@/pages/Portfolio";
-import NotFound from "@/pages/not-found";
+import React, { useState } from 'react';
+import ModelUploader from './components/ModelUploader.tsx';
+import { ModelViewer } from './components/ModelViewer';
+import { motion, AnimatePresence } from 'framer-motion';
 
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={Portfolio} />
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
+const App: React.FC = () => {
+  const [modelUrl, setModelUrl] = useState<string | null>(null);
 
-function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center">
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full bg-gray-800 p-4 shadow-md"
+      >
+        <h1 className="text-3xl font-bold text-center">3D Model Showcase</h1>
+      </motion.header>
+      <main className="flex-grow container mx-auto p-4 flex flex-col items-center">
+        <ModelUploader setModelUrl={setModelUrl} />
+        <AnimatePresence>
+          {modelUrl && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              transition={{ duration: 0.5 }}
+              className="w-full h-full flex-grow mt-4"
+            >
+              <ModelViewer modelUrl={modelUrl} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+    </div>
   );
-}
+};
 
 export default App;

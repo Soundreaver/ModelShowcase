@@ -8,7 +8,8 @@ export class LocalStorageService {
   private uploadsDir: string;
 
   constructor() {
-    this.uploadsDir = path.join(process.cwd(), 'uploads');
+    // Save files to the client's public directory to make them directly accessible.
+    this.uploadsDir = path.join(process.cwd(), 'client/public/uploads');
     this.ensureUploadsDir();
   }
 
@@ -37,9 +38,11 @@ export class LocalStorageService {
 
       fileStream.on('finish', () => {
         const stats = fs.statSync(filePath);
+        // Return the public path so the client can access the file directly.
+        const publicPath = `/uploads/${objectId}`;
         res.json({
           success: true,
-          filePath: `/api/files/${objectId}`,
+          filePath: publicPath,
           message: 'File uploaded successfully',
           fileSize: stats.size,
         });

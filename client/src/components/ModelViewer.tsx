@@ -1,196 +1,44 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ThreeCanvas } from "./ThreeCanvas";
-import { ObjectUploader } from "./ObjectUploader";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import type { Model } from "@shared/schema";
-import type { UploadResult } from "@uppy/core";
+import React, { Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Grid } from '@react-three/drei';
+import { useLoader } from '@react-three/fiber';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import * as THREE from 'three';
 
-export function ModelViewer() {
-  const [currentModel, setCurrentModel] = useState<Model | null>(null);
-  const [modelInfo, setModelInfo] = useState<{ vertices: number; triangles: number } | null>(null);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const { data: models = [] } = useQuery<Model[]>({
-    queryKey: ["/api/models"],
-  });
-
-  // Auto-select the first model when models are loaded
-  useEffect(() => {
-    if (models.length > 0 && !currentModel) {
-      setCurrentModel(models[0]);
-    }
-  }, [models, currentModel]);
-
-  const createModelMutation = useMutation({
-    mutationFn: async (modelData: { name: string; filePath: string; fileSize: number; vertices?: number; triangles?: number }) => {
-      const response = await fetch("/api/models", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(modelData),
-      });
-      if (!response.ok) throw new Error("Failed to create model");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/models"] });
-      toast({
-        title: "Success",
-        description: "3D model uploaded successfully!",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to upload 3D model",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleGetUploadParameters = async () => {
-    const response = await fetch("/api/objects/upload", { method: "POST" });
-    if (!response.ok) throw new Error("Failed to get upload URL");
-    const { uploadURL } = await response.json();
-    
-    // The Vite proxy will handle rewriting the URL, so we can use it directly.
-    return { method: "PUT" as const, url: uploadURL };
-  };
-
-  const handleUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    const uploadedFile = result.successful?.[0];
-    if (uploadedFile) {
-      const fileName = uploadedFile.name || "Unknown Model";
-      const fileSize = uploadedFile.size || 0;
-      
-      // The server response now contains the correct relative path
-      const filePath = (uploadedFile.response?.body as { filePath: string })?.filePath;
-
-      if (filePath) {
-        createModelMutation.mutate({
-          name: fileName.replace(/\.[^/.]+$/, ""), // Remove file extension
-          filePath,
-          fileSize,
-          vertices: modelInfo?.vertices,
-          triangles: modelInfo?.triangles,
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to get file path from server",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  const handleModelSelect = (model: Model) => {
-    setCurrentModel(model);
-    setModelInfo(null);
-  };
-
-  const handleModelLoad = (info: { vertices: number; triangles: number }) => {
-    setModelInfo(info);
-  };
-
-  const handleError = (error: string) => {
-    toast({
-      title: "Error",
-      description: error,
-      variant: "destructive",
-    });
-  };
-
-  const formatFileSize = (bytes: number) => {
-    const mb = bytes / (1024 * 1024);
-    return `${mb.toFixed(1)} MB`;
-  };
-
-  return (
-    <section className="h-screen bg-primary dark:bg-black relative overflow-hidden">
-      <ThreeCanvas
-        modelUrl={currentModel?.filePath}
-        onModelLoad={handleModelLoad}
-        onError={handleError}
-      />
-
-      {/* No Model State */}
-      {!currentModel && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white">
-            <div className="w-32 h-32 mx-auto mb-6 bg-white/10 rounded-lg flex items-center justify-center">
-              <i className="fas fa-cube text-4xl text-white/50"></i>
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No Model Loaded</h3>
-            <p className="text-white/70 mb-6">Upload an FBX file to begin viewing</p>
-            <ObjectUploader
-              maxNumberOfFiles={1}
-              maxFileSize={50 * 1024 * 1024} // 50MB
-              onGetUploadParameters={handleGetUploadParameters}
-              onComplete={handleUploadComplete}
-              buttonClassName="bg-accent hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              Upload 3D Model
-            </ObjectUploader>
-          </div>
-        </div>
-      )}
-
-      {/* Upload Control */}
-      {currentModel && (
-        <div className="absolute top-6 left-6">
-          <div className="bg-white/90 dark:bg-black/80 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-            <ObjectUploader
-              maxNumberOfFiles={1}
-              maxFileSize={50 * 1024 * 1024}
-              onGetUploadParameters={handleGetUploadParameters}
-              onComplete={handleUploadComplete}
-              buttonClassName="p-2 text-accent hover:text-blue-600 transition-colors"
-            >
-              <i className="fas fa-upload"></i>
-            </ObjectUploader>
-          </div>
-        </div>
-      )}
-
-      {/* Model Info Panel */}
-      {currentModel && (
-        <div className="absolute bottom-6 left-6 bg-white/90 dark:bg-black/80 backdrop-blur-sm rounded-lg p-4 shadow-lg max-w-sm">
-          <h4 className="font-semibold text-primary dark:text-white mb-2">{currentModel.name}</h4>
-          <div className="text-sm text-subtle dark:text-white/70 space-y-1">
-            {modelInfo && (
-              <>
-                <p><span className="font-medium">Vertices:</span> {modelInfo.vertices.toLocaleString()}</p>
-                <p><span className="font-medium">Triangles:</span> {modelInfo.triangles.toLocaleString()}</p>
-              </>
-            )}
-            <p><span className="font-medium">File Size:</span> {formatFileSize(currentModel.fileSize)}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Model Selection Sidebar (if multiple models) */}
-      {models.length > 1 && (
-        <div className="absolute top-20 left-6 bg-white/90 dark:bg-black/80 backdrop-blur-sm rounded-lg p-4 shadow-lg max-w-xs max-h-80 overflow-y-auto">
-          <h4 className="font-semibold text-primary dark:text-white mb-3">Models</h4>
-          <div className="space-y-2">
-            {models.map((model) => (
-              <Button
-                key={model.id}
-                variant={currentModel?.id === model.id ? "default" : "ghost"}
-                size="sm"
-                onClick={() => handleModelSelect(model)}
-                className="w-full justify-start text-left"
-              >
-                <i className="fas fa-cube mr-2"></i>
-                <span className="truncate">{model.name}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
-    </section>
-  );
+interface ModelProps {
+  url: string;
 }
+
+const Model: React.FC<ModelProps> = ({ url }) => {
+  const fbx = useLoader(FBXLoader, url, (loader) => {
+    loader.setCrossOrigin('anonymous');
+  });
+  return <primitive object={fbx} scale={0.02} />;
+};
+
+interface ModelViewerProps {
+  modelUrl: string;
+}
+
+export const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
+  return (
+    <div className="relative w-full h-[70vh] rounded-lg overflow-hidden bg-gray-800">
+      <Canvas camera={{ position: [0, 2, 5], fov: 50 }}>
+        <Suspense fallback={null}>
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={1} />
+          <pointLight position={[-10, -10, -10]} intensity={0.5} />
+          <Model url={modelUrl} />
+          <Grid infiniteGrid />
+          <OrbitControls
+            enablePan={true}
+            mouseButtons={{
+              MIDDLE: THREE.MOUSE.PAN,
+              RIGHT: THREE.MOUSE.ROTATE,
+            }}
+          />
+        </Suspense>
+      </Canvas>
+    </div>
+  );
+};
