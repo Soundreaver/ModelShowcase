@@ -19,12 +19,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/uploads', express.static(uploadsDir));
 
   // Serve public objects (images, models) - only if cloud storage is configured
-  app.get("/public-objects/:filePath(*)", async (req, res) => {
+  app.get("/public-objects/*", async (req, res) => {
     if (!objectStorageService) {
       return res.status(404).json({ error: "Cloud storage not configured" });
     }
     
-    const filePath = req.params.filePath;
+    const filePath = req.path.replace('/public-objects/', '');
     try {
       const file = await objectStorageService.searchPublicObject(filePath);
       if (!file) {
@@ -38,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve private objects - only if cloud storage is configured
-  app.get("/objects/:objectPath(*)", async (req, res) => {
+  app.get("/objects/*", async (req, res) => {
     if (!objectStorageService) {
       return res.status(404).json({ error: "Cloud storage not configured" });
     }
