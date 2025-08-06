@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 
 interface ObjectUploaderProps {
-  maxNumberOfFiles?: number;
   maxFileSize?: number;
   onGetUploadParameters: () => Promise<{ method: 'PUT'; url: string }>;
   onComplete: (result: any) => void;
@@ -11,7 +10,6 @@ interface ObjectUploaderProps {
 }
 
 export function ObjectUploader({
-  maxNumberOfFiles = 1,
   maxFileSize = 10 * 1024 * 1024, // 10MB default
   onGetUploadParameters,
   onComplete,

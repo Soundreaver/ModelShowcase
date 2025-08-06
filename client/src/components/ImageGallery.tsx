@@ -115,7 +115,6 @@ export function ImageGallery() {
             </p>
           </div>
           <ObjectUploader
-            maxNumberOfFiles={5}
             maxFileSize={10 * 1024 * 1024} // 10MB
             onGetUploadParameters={handleGetUploadParameters}
             onComplete={handleUploadComplete}
@@ -139,7 +138,6 @@ export function ImageGallery() {
               Upload your first render to get started
             </p>
             <ObjectUploader
-              maxNumberOfFiles={5}
               maxFileSize={10 * 1024 * 1024}
               onGetUploadParameters={handleGetUploadParameters}
               onComplete={handleUploadComplete}
@@ -183,7 +181,6 @@ export function ImageGallery() {
             {/* Upload placeholder */}
             <div className="aspect-square bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center cursor-pointer hover:border-accent hover:bg-accent/5 dark:hover:bg-accent/10 transition-colors">
               <ObjectUploader
-                maxNumberOfFiles={5}
                 maxFileSize={10 * 1024 * 1024}
                 onGetUploadParameters={handleGetUploadParameters}
                 onComplete={handleUploadComplete}
