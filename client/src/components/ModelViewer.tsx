@@ -54,6 +54,8 @@ export function ModelViewer() {
     const response = await fetch("/api/objects/upload", { method: "POST" });
     if (!response.ok) throw new Error("Failed to get upload URL");
     const { uploadURL } = await response.json();
+    
+    // The Vite proxy will handle rewriting the URL, so we can use it directly.
     return { method: "PUT" as const, url: uploadURL };
   };
 
@@ -63,13 +65,24 @@ export function ModelViewer() {
       const fileName = uploadedFile.name || "Unknown Model";
       const fileSize = uploadedFile.size || 0;
       
-      createModelMutation.mutate({
-        name: fileName.replace(/\.[^/.]+$/, ""), // Remove file extension
-        filePath: uploadedFile.uploadURL || "",
-        fileSize,
-        vertices: modelInfo?.vertices,
-        triangles: modelInfo?.triangles,
-      });
+      // The server response now contains the correct relative path
+      const filePath = (uploadedFile.response?.body as { filePath: string })?.filePath;
+
+      if (filePath) {
+        createModelMutation.mutate({
+          name: fileName.replace(/\.[^/.]+$/, ""), // Remove file extension
+          filePath,
+          fileSize,
+          vertices: modelInfo?.vertices,
+          triangles: modelInfo?.triangles,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to get file path from server",
+          variant: "destructive",
+        });
+      }
     }
   };
 

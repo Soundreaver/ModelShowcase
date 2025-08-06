@@ -107,32 +107,43 @@ export function ThreeCanvas({ modelUrl, onModelLoad, onError }: ThreeCanvasProps
 
   useEffect(() => {
     if (!modelUrl || !sceneRef.current) return;
-    
-    console.log("Loading model from URL:", modelUrl);
 
-    // Remove previous model
-    if (currentModelRef.current) {
-      sceneRef.current.remove(currentModelRef.current);
-    }
+    const loadModel = async () => {
+      try {
+        // Construct full URL to fetch the model
+        const fullUrl = modelUrl.startsWith('http')
+          ? modelUrl
+          : `${window.location.origin}${modelUrl}`;
 
-    const loader = new FBXLoader();
-    loader.load(
-      modelUrl,
-      (object: THREE.Group) => {
+        console.log("Fetching model from URL:", fullUrl);
+        const response = await fetch(fullUrl);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        console.log(`Fetched ${arrayBuffer.byteLength} bytes.`);
+
+        // Remove previous model from the scene
+        if (currentModelRef.current) {
+          sceneRef.current?.remove(currentModelRef.current);
+        }
+
+        // Parse the ArrayBuffer directly
+        const loader = new FBXLoader();
+        const object = loader.parse(arrayBuffer, '');
+
         // Calculate model info
         let vertices = 0;
         let triangles = 0;
-
         object.traverse((child: THREE.Object3D) => {
-          if (child instanceof THREE.Mesh) {
+          if (child instanceof THREE.Mesh && child.geometry) {
             child.castShadow = true;
             child.receiveShadow = true;
-            
-            if (child.geometry) {
-              const geometry = child.geometry;
-              vertices += geometry.attributes.position?.count || 0;
-              triangles += geometry.index ? geometry.index.count / 3 : vertices / 3;
-            }
+            const geometry = child.geometry;
+            vertices += geometry.attributes.position?.count || 0;
+            triangles += geometry.index ? geometry.index.count / 3 : (geometry.attributes.position?.count || 0) / 3;
           }
         });
 
@@ -151,15 +162,14 @@ export function ThreeCanvas({ modelUrl, onModelLoad, onError }: ThreeCanvasProps
         currentModelRef.current = object;
 
         onModelLoad?.({ vertices: Math.round(vertices), triangles: Math.round(triangles) });
-      },
-      (progress: ProgressEvent) => {
-        console.log("Loading progress:", (progress.loaded / progress.total) * 100 + "%");
-      },
-      (error: unknown) => {
-        console.error("Error loading FBX:", error);
-        onError?.("Failed to load 3D model");
+
+      } catch (error: any) {
+        console.error("Error loading FBX model:", error);
+        onError?.(`Failed to load 3D model: ${error.message}`);
       }
-    );
+    };
+
+    loadModel();
   }, [modelUrl, onModelLoad, onError]);
 
   const resetCamera = () => {

@@ -2,14 +2,22 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { LocalStorageService } from "./localStorage";
 import { insertModelSchema, insertImageSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  const objectStorageService = new ObjectStorageService();
+  // Use cloud storage if configured, otherwise fallback to local storage
+  const useCloudStorage = process.env.GOOGLE_CLOUD_PROJECT_ID && process.env.PRIVATE_OBJECT_DIR;
+  const objectStorageService = useCloudStorage ? new ObjectStorageService() : null;
+  const localStorageService = new LocalStorageService();
 
-  // Serve public objects (images, models)
+  // Serve public objects (images, models) - only if cloud storage is configured
   app.get("/public-objects/:filePath(*)", async (req, res) => {
+    if (!objectStorageService) {
+      return res.status(404).json({ error: "Cloud storage not configured" });
+    }
+    
     const filePath = req.params.filePath;
     try {
       const file = await objectStorageService.searchPublicObject(filePath);
@@ -23,8 +31,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve private objects
+  // Serve private objects - only if cloud storage is configured
   app.get("/objects/:objectPath(*)", async (req, res) => {
+    if (!objectStorageService) {
+      return res.status(404).json({ error: "Cloud storage not configured" });
+    }
+    
     try {
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
       objectStorageService.downloadObject(objectFile, res);
@@ -40,12 +52,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get upload URL for objects
   app.post("/api/objects/upload", async (req, res) => {
     try {
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
+      if (objectStorageService) {
+        const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+        res.json({ uploadURL });
+      } else {
+        const uploadURL = await localStorageService.getUploadURL();
+        res.json({ uploadURL });
+      }
     } catch (error) {
       console.error("Error getting upload URL:", error);
       res.status(500).json({ error: "Failed to get upload URL" });
     }
+  });
+
+  // Handle local file uploads
+  app.put("/api/upload/:objectId", async (req, res) => {
+    await localStorageService.handleUpload(req, res);
+  });
+
+  // Serve local files
+  app.get("/api/files/:objectId", async (req, res) => {
+    await localStorageService.serveFile(req, res);
   });
 
   // Model routes
@@ -64,7 +91,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertModelSchema.parse(req.body);
       
       // Normalize the file path if it's a full URL
-      const objectPath = objectStorageService.normalizeObjectEntityPath(validatedData.filePath);
+      const objectPath = objectStorageService 
+        ? objectStorageService.normalizeObjectEntityPath(validatedData.filePath)
+        : localStorageService.normalizeObjectEntityPath(validatedData.filePath);
       
       const model = await storage.createModel({
         ...validatedData,
@@ -109,8 +138,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertImageSchema.parse(req.body);
       
-      // Normalize the file path if it's a full URL
-      const objectPath = objectStorageService.normalizeObjectEntityPath(validatedData.filePath);
+      // Normalize the file path if it's a full URL  
+      const objectPath = objectStorageService 
+        ? objectStorageService.normalizeObjectEntityPath(validatedData.filePath)
+        : localStorageService.normalizeObjectEntityPath(validatedData.filePath);
       
       const image = await storage.createImage({
         ...validatedData,

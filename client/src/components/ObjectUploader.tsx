@@ -4,7 +4,7 @@ import Uppy from "@uppy/core";
 import { DashboardModal } from "@uppy/react";
 import "@uppy/core/dist/style.min.css";
 import "@uppy/dashboard/dist/style.min.css";
-import AwsS3 from "@uppy/aws-s3";
+import XHRUpload from "@uppy/xhr-upload";
 import type { UploadResult } from "@uppy/core";
 import { Button } from "@/components/ui/button";
 
@@ -67,9 +67,13 @@ export function ObjectUploader({
       },
       autoProceed: false,
     })
-      .use(AwsS3, {
-        shouldUseMultipart: false,
-        getUploadParameters: onGetUploadParameters,
+      .use(XHRUpload, {
+        endpoint: async (file) => {
+          const params = await onGetUploadParameters();
+          return params.url;
+        },
+        method: 'PUT',
+        headers: {},
       })
       .on("complete", (result) => {
         onComplete?.(result);
