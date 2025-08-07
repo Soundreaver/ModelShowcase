@@ -36,7 +36,7 @@ export function ImageGallery() {
       filePath: string;
       category?: string;
     }) => {
-      const response = await fetch("/api/images", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/images`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(imageData),
@@ -64,7 +64,7 @@ export function ImageGallery() {
   });
 
   const handleGetUploadParameters = async () => {
-    const response = await fetch("/api/objects/upload", { method: "POST" });
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/objects/upload`, { method: "POST" });
     if (!response.ok) throw new Error("Failed to get upload URL");
     const { uploadURL } = await response.json();
 
