@@ -43,6 +43,7 @@ export const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
           <Grid infiniteGrid />
           <OrbitControls
             enablePan={true}
+            enableZoom={true}
             mouseButtons={{
               MIDDLE: THREE.MOUSE.PAN,
               RIGHT: THREE.MOUSE.ROTATE,
