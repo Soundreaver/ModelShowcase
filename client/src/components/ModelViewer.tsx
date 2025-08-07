@@ -45,6 +45,7 @@ export const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
             enablePan={true}
             enableZoom={true}
             mouseButtons={{
+              LEFT: THREE.MOUSE.DOLLY,
               MIDDLE: THREE.MOUSE.PAN,
               RIGHT: THREE.MOUSE.ROTATE,
             }}
