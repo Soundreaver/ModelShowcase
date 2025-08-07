@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Grid } from '@react-three/drei';
 import { useLoader } from '@react-three/fiber';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import * as THREE from 'three';
+import { MOUSE } from 'three';
 
 interface ModelProps {
   url: string;
@@ -44,10 +44,11 @@ export const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
           <OrbitControls
             enablePan={true}
             enableZoom={true}
+            enableRotate={true}
             mouseButtons={{
-              LEFT: THREE.MOUSE.DOLLY,
-              MIDDLE: THREE.MOUSE.PAN,
-              RIGHT: THREE.MOUSE.ROTATE,
+              LEFT: MOUSE.DOLLY,
+              MIDDLE: MOUSE.PAN,
+              RIGHT: MOUSE.ROTATE,
             }}
           />
         </Suspense>
