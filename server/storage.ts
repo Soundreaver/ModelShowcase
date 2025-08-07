@@ -1,5 +1,27 @@
-import { type Model, type InsertModel, type Image, type InsertImage } from "@shared/schema";
 import { randomUUID } from "crypto";
+
+export interface Model {
+  id: string;
+  name: string;
+  description: string | null;
+  filePath: string;
+  vertices: number | null;
+  triangles: number | null;
+  uploadedAt: Date;
+}
+
+export type InsertModel = Omit<Model, "id" | "uploadedAt">;
+
+export interface Image {
+  id: string;
+  name: string;
+  description: string | null;
+  filePath: string;
+  category: string | null;
+  uploadedAt: Date;
+}
+
+export type InsertImage = Omit<Image, "id" | "uploadedAt">;
 
 export interface IStorage {
   // Model methods
