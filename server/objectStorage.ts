@@ -7,7 +7,7 @@ import {
   canAccessObject,
   getObjectAclPolicy,
   setObjectAclPolicy,
-} from "./objectAcl";
+} from "./objectAcl.js";
 
 // The object storage client is used to interact with the object storage service.
 // Uses Application Default Credentials (ADC) or service account key file

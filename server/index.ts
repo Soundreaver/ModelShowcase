@@ -3,7 +3,7 @@ import cors from 'cors';
 import multer from 'multer';
 import AWS from 'aws-sdk';
 import 'dotenv/config';
-import { registerRoutes } from './routes';
+import { registerRoutes } from './routes.js';
 
 const app = express();
 const port = process.env.PORT || 3001;

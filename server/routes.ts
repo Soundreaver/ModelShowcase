@@ -2,9 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
 import path from "path";
-import { storage } from "./storage";
-import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { LocalStorageService } from "./localStorage";
+import { storage } from "./storage.js";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage.js";
+import { LocalStorageService } from "./localStorage.js";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
