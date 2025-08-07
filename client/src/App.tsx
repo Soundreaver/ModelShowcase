@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import ModelUploader from './components/ModelUploader.tsx';
-import { ModelViewer } from './components/ModelViewer';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from "react";
+import ModelUploader from "./components/ModelUploader.tsx";
+import { ModelViewer } from "./components/ModelViewer";
+import { motion, AnimatePresence } from "framer-motion";
 
 const App: React.FC = () => {
   const [modelUrl, setModelUrl] = useState<string | null>(null);
@@ -14,7 +14,7 @@ const App: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="w-full bg-gray-800 p-4 shadow-md"
       >
-        <h1 className="text-3xl font-bold text-center">3D Model Showcase</h1>
+        <h1 className="text-3xl font-bold text-center">3D Model Viewer</h1>
       </motion.header>
       <main className="flex-grow container mx-auto p-4 flex flex-col items-center">
         <ModelUploader setModelUrl={setModelUrl} />
