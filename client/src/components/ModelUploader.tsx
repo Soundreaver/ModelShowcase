@@ -8,6 +8,7 @@ interface ModelUploaderProps {
 
 const ModelUploader: React.FC<ModelUploaderProps> = ({ setModelUrl }) => {
   const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -18,6 +19,7 @@ const ModelUploader: React.FC<ModelUploaderProps> = ({ setModelUrl }) => {
   const handleUpload = async () => {
     if (!file) return;
 
+    setIsUploading(true);
     const formData = new FormData();
     formData.append('file', file);
 
@@ -30,6 +32,8 @@ const ModelUploader: React.FC<ModelUploaderProps> = ({ setModelUrl }) => {
       setModelUrl(response.data.filePath);
     } catch (error) {
       console.error('Error uploading file:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -54,13 +58,20 @@ const ModelUploader: React.FC<ModelUploaderProps> = ({ setModelUrl }) => {
       </div>
       {file && <p className="mt-2 text-sm text-gray-300">{file.name}</p>}
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: isUploading ? 1 : 1.05 }}
+        whileTap={{ scale: isUploading ? 1 : 0.95 }}
         onClick={handleUpload}
-        className="mt-4 px-6 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-500"
-        disabled={!file}
+        className="mt-4 px-6 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-500 flex items-center justify-center"
+        disabled={!file || isUploading}
       >
-        Upload
+        {isUploading ? (
+          <>
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+            Uploading...
+          </>
+        ) : (
+          'Upload'
+        )}
       </motion.button>
     </motion.div>
   );
