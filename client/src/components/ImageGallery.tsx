@@ -6,8 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import type { Image } from "@shared/schema";
 import type { UploadResult } from "@uppy/core";
+
+export interface Image {
+  id: string;
+  name: string;
+  description: string | null;
+  filePath: string;
+  category: string | null;
+  uploadedAt: Date;
+}
 
 export function ImageGallery() {
   const [selectedImage, setSelectedImage] = useState<Image | null>(null);
