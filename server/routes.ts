@@ -5,7 +5,6 @@ import path from "path";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { LocalStorageService } from "./localStorage";
-import { insertModelSchema, insertImageSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -94,23 +93,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/models", async (req, res) => {
     try {
-      const validatedData = insertModelSchema.parse(req.body);
+      const { name, description, filePath, vertices, triangles } = req.body;
       
       // Normalize the file path if it's a full URL
       const objectPath = objectStorageService 
-        ? objectStorageService.normalizeObjectEntityPath(validatedData.filePath)
-        : localStorageService.normalizeObjectEntityPath(validatedData.filePath);
+        ? objectStorageService.normalizeObjectEntityPath(filePath)
+        : localStorageService.normalizeObjectEntityPath(filePath);
       
       const model = await storage.createModel({
-        ...validatedData,
+        name,
+        description,
         filePath: objectPath,
+        vertices,
+        triangles,
       });
       
       res.status(201).json(model);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid model data", details: error.errors });
-      }
       console.error("Error creating model:", error);
       res.status(500).json({ error: "Failed to create model" });
     }
@@ -142,23 +141,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/images", async (req, res) => {
     try {
-      const validatedData = insertImageSchema.parse(req.body);
+      const { name, description, filePath, category } = req.body;
       
       // Normalize the file path if it's a full URL  
       const objectPath = objectStorageService 
-        ? objectStorageService.normalizeObjectEntityPath(validatedData.filePath)
-        : localStorageService.normalizeObjectEntityPath(validatedData.filePath);
+        ? objectStorageService.normalizeObjectEntityPath(filePath)
+        : localStorageService.normalizeObjectEntityPath(filePath);
       
       const image = await storage.createImage({
-        ...validatedData,
+        name,
+        description,
         filePath: objectPath,
+        category,
       });
       
       res.status(201).json(image);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid image data", details: error.errors });
-      }
       console.error("Error creating image:", error);
       res.status(500).json({ error: "Failed to create image" });
     }
