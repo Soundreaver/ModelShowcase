@@ -13,19 +13,20 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-
-    "paths": {
-      "@/*": ["./src/*"],
-      "@shared/*": ["../shared/*"]
-    },
 
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared/*": ["../shared/*"]
+    }
   },
-  "include": ["src", "src/**/*.d.ts"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

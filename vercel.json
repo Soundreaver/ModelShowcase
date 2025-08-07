@@ -1,12 +1,16 @@
 {
   "version": 2,
   "name": "model-showcase-frontend",
-  "buildCommand": "cd client && npm run build",
+  "buildCommand": "cd client && npm ci && npm run build",
   "outputDirectory": "client/dist",
+  "installCommand": "cd client && npm ci",
+  "env": {
+    "VITE_API_URL": "$BACKEND_URL"
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "$BACKEND_URL/api/$1"
+      "destination": "$BACKEND_URL/$1"
     },
     {
       "source": "/(.*)",
