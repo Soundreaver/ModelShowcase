@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
   "scripts": {
     "dev": "npm run dev:server",
     "dev:client": "npm run dev --prefix client",
